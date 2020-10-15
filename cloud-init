@@ -1,0 +1,32 @@
+#cloud-config
+# update the duckdns url to use your domain and token/key
+#
+# 
+package_update: true
+package_upgrade: true
+
+packages:
+    - docker.io
+    - docker-compose
+write_files:
+    - owner: root:root
+      path: /etc/cron.d/every_6_hours
+      permissions: '0644'
+      content: |
+        0 0-21/6 * * * curl http://www.duckdns.org/update/<YourDomain>/<yourKey>
+runcmd:
+    - [ sh,-c,'sudo snap install powershell --classic']
+    - [ sh, -c, 'sudo mkdir -p /opt/jitsi']
+    - [ sh, -c, 'cd /opt/jitsi && sudo git clone https://github.com/brandonmcclure/docker-jitsi-meet.git']
+    - [ sh, -c, 'curl http://www.duckdns.org/update/<YourDomain>/<yourKey>']
+
+# create the docker group
+groups:
+    - docker
+
+users:
+    - default
+    - name: JitsiAdmin
+      groups: docker
+
+final_message: "The system is finally up, after $UPTIME seconds"
