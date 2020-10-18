@@ -16,11 +16,11 @@
 $HTTPPort = "80"
 $HTTPSPort = "443"
 $RESTART_POLICY = 'no' 
-$DOCKER_HOST_ADDRESS = '***REMOVED***'
-$TIME_ZONE = 'MDT'
+$DOCKER_HOST_ADDRESS = ''
+$TIME_ZONE = 'UTC'
 $LetsEncryptEnable = $false
-$LetsEncryptEmail = '***REMOVED***'
-$LetsEncryptDomain = '***REMOVED***'
+$LetsEncryptEmail = ''
+$LetsEncryptDomain = ''
 $CONFIG_PATH = './jitsi-meet-cfg'
 $ENABLE_GUESTS=$false
 $AUTH_TYPE = "internal"

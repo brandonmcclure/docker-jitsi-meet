@@ -18,7 +18,7 @@ write_files:
       path: /etc/cron.d/onreboot
       permissions: '0644'
       content: |
-        @reboot root curl http://www.duckdns.org/update/***REMOVED***/***REMOVED***
+        @reboot root curl http://www.duckdns.org/update/***REMOVED***/<YourDomain>/<yourKey>
 
 runcmd:
     - [ sh,-c,'sudo snap install powershell --classic']
