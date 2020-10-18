@@ -15,7 +15,7 @@
 
 $HTTPPort = "80"
 $HTTPSPort = "443"
-$RESTART_POLICY = 'no' 
+$RESTART_POLICY = 'unless-stopped'
 $DOCKER_HOST_ADDRESS = ''
 $TIME_ZONE = 'UTC'
 $LetsEncryptEnable = $false
@@ -104,7 +104,7 @@ Move-Item -Path $tempFilePath -Destination "$(Split-Path $filePath -Parent)\.env
 
 # Create CONFIG directories
 If (Test-Path "$($PSScriptRoot)\$CONFIG_PATH"){
-    Remove-Item "$($PSScriptRoot)\$CONFIG_PATH" -Recurse -Force -Verbose
+    Remove-Item "$($PSScriptRoot)\$CONFIG_PATH" -Recurse -Force
 }
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\web\letsencrypt" -ItemType Directory -Force
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\transcripts" -ItemType Directory -Force

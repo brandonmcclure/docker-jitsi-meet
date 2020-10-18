@@ -1,3 +1,5 @@
+This is my fork of the Jitsi Meet on Docker repo. The main change is that I added a Powershell script to configure the .env file and a cloud-init file to stand up a Ubuntu VM in Azure to run the solution. 
+
 # Jitsi Meet on Docker
 
 ![](resources/jitsi-docker.png)
