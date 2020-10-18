@@ -1,7 +1,6 @@
 #cloud-config
 # update the duckdns url to use your domain and token/key
 #
-# 
 package_update: true
 package_upgrade: true
 
@@ -13,7 +12,14 @@ write_files:
       path: /etc/cron.d/every_6_hours
       permissions: '0644'
       content: |
-        0 0-21/6 * * * curl http://www.duckdns.org/update/<YourDomain>/<yourKey>
+        0 0-21/6 * * * root curl http://www.duckdns.org/update/<YourDomain>/<yourKey>
+
+    - owner: root:root
+      path: /etc/cron.d/onreboot
+      permissions: '0644'
+      content: |
+        @reboot root curl http://www.duckdns.org/update/***REMOVED***/***REMOVED***
+
 runcmd:
     - [ sh,-c,'sudo snap install powershell --classic']
     - [ sh, -c, 'sudo mkdir -p /opt/jitsi']

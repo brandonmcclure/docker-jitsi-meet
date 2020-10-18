@@ -1,15 +1,36 @@
 #Requires -Version 7.0
 # https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker
 #
+# Make sure to open ports in your firewall:
+# 80/tcp for Web UI HTTP (really just to redirect, after uncommenting ENABLE_HTTP_REDIRECT=1 in .env)
+# 443/tcp for Web UI HTTPS
+# 4443/tcp for RTP media over TCP
+# 10000/udp for RTP media over UDP
+#
+# To configure internal auth users:
+# docker-compose exec prosody /bin/bash
+# prosodyctl --config /config/prosody.cfg.lua register admin meet.jitsi TheDesiredPassword
+
 # If you have issues getting the LetsEncrypt cert on the web site/are still getting the default/wildcard self signed cert that is default then prune: docker system prune -a
 
 $HTTPPort = "80"
 $HTTPSPort = "443"
-$RESTART_POLICY = 'unless-stopped'
+$RESTART_POLICY = 'no' 
+$DOCKER_HOST_ADDRESS = '***REMOVED***'
+$TIME_ZONE = 'MDT'
 $LetsEncryptEnable = $false
-$LetsEncryptEmail = ''
-$LetsEncryptDomain = ''
-$CONFIG_PATH = '/jitsi-meet-cfg'
+$LetsEncryptEmail = '***REMOVED***'
+$LetsEncryptDomain = '***REMOVED***'
+$CONFIG_PATH = './jitsi-meet-cfg'
+$ENABLE_GUESTS=$false
+$AUTH_TYPE = "internal"
+
+[Environment]::SetEnvironmentVariable("CONFIG_PATH", "$CONFIG_PATH", "user")
+
+if($IsLinux){
+    Write-Host "Is running on linux, setting DOCKER_HOST_ADDRESS"
+    $DOCKER_HOST_ADDRESS = $(ip a | awk '/inet / { print $2 }' | sed -n 2p | cut -d "/" -f1)
+}
 
 # Create Secure Passwords in the config
 function generatePassword() {
@@ -67,18 +88,23 @@ $content | replaceWith -find "JICOFO_COMPONENT_SECRET=" -replace "JICOFO_COMPONE
 | foreach-object{if (-not [string]::IsNullOrEmpty($HTTPSPort)){$_ | replaceWith -find "HTTPS_PORT=8443" -replace "HTTPS_PORT=$HTTPSPort"}else{$_}}`
 | foreach-object{if (-not [string]::IsNullOrEmpty($RESTART_POLICY)){$_ | replaceWith -find "RESTART_POLICY=unless-stopped" -replace "RESTART_POLICY=$RESTART_POLICY"}else{$_}}`
 | foreach-object{if (-not [string]::IsNullOrEmpty($CONFIG_PATH)){$_ | replaceWith -find "CONFIG=~/.jitsi-meet-cfg" -replace "CONFIG=$CONFIG_PATH"}else{$_}}`
-
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#ENABLE_LETSENCRYPT=1" -replace "ENABLE_LETSENCRYPT=1"}else{$_}}`
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#LETSENCRYPT_DOMAIN=meet.example.com" -replace "LETSENCRYPT_DOMAIN=$LetsEncryptDomain"}else{$_}}`
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#LETSENCRYPT_EMAIL=alice@atlanta.net" -replace "LETSENCRYPT_EMAIL=$LetsEncryptEmail"}else{$_}}`
+| foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#PUBLIC_URL=https://meet.example.com" -replace "PUBLIC_URL=https://$LetsEncryptDomain"}else{$_}}`
+| foreach-object{if (-not [string]::IsNullOrEmpty($DOCKER_HOST_ADDRESS)){$_ | replaceWith -find "#DOCKER_HOST_ADDRESS=192.168.1.1" -replace "DOCKER_HOST_ADDRESS=$DOCKER_HOST_ADDRESS"}else{$_}}`
+| foreach-object{if (-not [string]::IsNullOrEmpty($TIME_ZONE)){$_ | replaceWith -find "TZ=UTC" -replace "TZ=$TIME_ZONE"}else{$_}}`
+| foreach-object{if (-not $ENABLE_GUESTS){$_ | replaceWith -find "#ENABLE_GUESTS=1" -replace "ENABLE_GUESTS=0"}else{$_}}`
+| foreach-object{if (-not [string]::IsNullOrEmpty($AUTH_TYPE)){$_ | replaceWith -find "#AUTH_TYPE=internal" -replace "AUTH_TYPE=$AUTH_TYPE"}else{$_}}`
 | Add-Content -Path $tempFilePath
+
 
 Remove-Item -Path "$(Split-Path $filePath -Parent)\.env" -ErrorAction Ignore
 Move-Item -Path $tempFilePath -Destination "$(Split-Path $filePath -Parent)\.env" -Force
 
 # Create CONFIG directories
 If (Test-Path "$($PSScriptRoot)\$CONFIG_PATH"){
-    Remove-Item "$($PSScriptRoot)\$CONFIG_PATH" -Recurse -Force
+    Remove-Item "$($PSScriptRoot)\$CONFIG_PATH" -Recurse -Force -Verbose
 }
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\web\letsencrypt" -ItemType Directory -Force
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\transcripts" -ItemType Directory -Force
