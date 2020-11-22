@@ -9,14 +9,14 @@
 #
 # To configure internal auth users:
 # docker-compose exec prosody /bin/bash
-# prosodyctl --config /config/prosody.cfg.lua adduser admin@meet.jitsi   
+# prosodyctl --config /config/prosody.cfg.lua register username meet.jitsi badpassword  
 
 # If you have issues getting the LetsEncrypt cert on the web site/are still getting the default/wildcard self signed cert that is default then prune: docker system prune -a
 
-$HTTPPort = "7080"
-$HTTPSPort = "7043"
+$HTTPPort = "80"
+$HTTPSPort = "443"
 $RESTART_POLICY = 'unless-stopped'
-$DOCKER_HOST_ADDRESS = '192.168.0.2'
+$DOCKER_HOST_ADDRESS = ''
 $TIME_ZONE = 'UTC'
 $LetsEncryptEnable = $false
 $LetsEncryptEmail = ''
@@ -97,6 +97,7 @@ $content | replaceWith -find "JICOFO_COMPONENT_SECRET=" -replace "JICOFO_COMPONE
 | foreach-object{if (-not [string]::IsNullOrEmpty($TIME_ZONE)){$_ | replaceWith -find "TZ=UTC" -replace "TZ=$TIME_ZONE"}else{$_}}`
 | foreach-object{if (-not $ENABLE_GUESTS){$_ | replaceWith -find "#ENABLE_GUESTS=1" -replace "ENABLE_GUESTS=0"}else{$_}}`
 | foreach-object{if (-not [string]::IsNullOrEmpty($AUTH_TYPE)){$_ | replaceWith -find "#AUTH_TYPE=internal" -replace "AUTH_TYPE=$AUTH_TYPE"}else{$_}}`
+| foreach-object{if (-not [string]::IsNullOrEmpty($AUTH_TYPE)){$_ | replaceWith -find "#ENABLE_AUTH=1" -replace "ENABLE_AUTH=1"}else{$_}}`
 | Add-Content -Path $tempFilePath
 
 

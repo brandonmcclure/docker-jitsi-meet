@@ -12,10 +12,8 @@ services:
             - ${CONFIG}/web:/config:Z
             - ${CONFIG}/web/letsencrypt:/etc/letsencrypt:Z
             - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts:Z
-            - TOKEN_AUTH_URL
         env_file:
           - .env
-            - TOKEN_AUTH_URL
         networks:
             meet.jitsi:
                 aliases:
@@ -70,6 +68,7 @@ services:
                 aliases:
                     - jvb.meet.jitsi
 
+    
 # Custom network so all services can communicate using a FQDN
 networks:
     meet.jitsi:
