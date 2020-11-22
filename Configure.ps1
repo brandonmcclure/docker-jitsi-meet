@@ -9,14 +9,14 @@
 #
 # To configure internal auth users:
 # docker-compose exec prosody /bin/bash
-# prosodyctl --config /config/prosody.cfg.lua register admin meet.jitsi TheDesiredPassword
+# prosodyctl --config /config/prosody.cfg.lua adduser admin@meet.jitsi   
 
 # If you have issues getting the LetsEncrypt cert on the web site/are still getting the default/wildcard self signed cert that is default then prune: docker system prune -a
 
-$HTTPPort = "80"
-$HTTPSPort = "443"
+$HTTPPort = "7080"
+$HTTPSPort = "7043"
 $RESTART_POLICY = 'unless-stopped'
-$DOCKER_HOST_ADDRESS = ''
+$DOCKER_HOST_ADDRESS = '192.168.0.2'
 $TIME_ZONE = 'UTC'
 $LetsEncryptEnable = $false
 $LetsEncryptEmail = ''
@@ -92,6 +92,7 @@ $content | replaceWith -find "JICOFO_COMPONENT_SECRET=" -replace "JICOFO_COMPONE
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#LETSENCRYPT_DOMAIN=meet.example.com" -replace "LETSENCRYPT_DOMAIN=$LetsEncryptDomain"}else{$_}}`
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#LETSENCRYPT_EMAIL=alice@atlanta.net" -replace "LETSENCRYPT_EMAIL=$LetsEncryptEmail"}else{$_}}`
 | foreach-object{if ($LetsEncryptEnable){$_ | replaceWith -find "#PUBLIC_URL=https://meet.example.com" -replace "PUBLIC_URL=https://$LetsEncryptDomain"}else{$_}}`
+| foreach-object{if ($true){$_ | replaceWith -find "#ENABLE_HTTP_REDIRECT=1" -replace "ENABLE_HTTP_REDIRECT=1"}else{$_}}`
 | foreach-object{if (-not [string]::IsNullOrEmpty($DOCKER_HOST_ADDRESS)){$_ | replaceWith -find "#DOCKER_HOST_ADDRESS=192.168.1.1" -replace "DOCKER_HOST_ADDRESS=$DOCKER_HOST_ADDRESS"}else{$_}}`
 | foreach-object{if (-not [string]::IsNullOrEmpty($TIME_ZONE)){$_ | replaceWith -find "TZ=UTC" -replace "TZ=$TIME_ZONE"}else{$_}}`
 | foreach-object{if (-not $ENABLE_GUESTS){$_ | replaceWith -find "#ENABLE_GUESTS=1" -replace "ENABLE_GUESTS=0"}else{$_}}`

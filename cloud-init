@@ -24,7 +24,7 @@ runcmd:
     - [ sh,-c,'sudo snap install powershell --classic']
     - [ sh, -c, 'sudo mkdir -p /opt/jitsi']
     - [ sh, -c, 'cd /opt/jitsi && sudo git clone https://github.com/brandonmcclure/docker-jitsi-meet.git']
-    - [ sh, -c, 'curl http://www.duckdns.org/update/<YourDomain>/<yourKey>']
+    - [ sh, -c, 'curl http://www.duckdns.org/update/<YourDomain>/<yourKey>
 
 # create the docker group
 groups:
