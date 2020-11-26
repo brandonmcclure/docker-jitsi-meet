@@ -39,15 +39,14 @@ function generatePassword() {
    Write-Output (Scramble-String($password) | ConvertTo-SecureString -AsPlainText -Force)
 }
 $ACCESS_CONTROL_LIST = @(
-    @{Username ='brandon';
+    @{Username ='admin';
         Password = (ConvertTo-SecureString 'staticPassword' -AsPlainText)},
-    @{Username ='leigha';
-        Password =(ConvertTo-SecureString 'staticPassword' -AsPlainText)},
-    @{Username ='doug';
+    @{Username ='user2';
         Password =$(generatePassword)},
-    @{Username ='mark';
+    @{Username ='user3';
         Password =$(generatePassword)}
 )
+
 
 [Environment]::SetEnvironmentVariable("CONFIG_PATH", "$CONFIG_PATH", "user")
 
