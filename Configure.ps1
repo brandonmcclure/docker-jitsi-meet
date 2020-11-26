@@ -6,10 +6,6 @@
 # 443/tcp for Web UI HTTPS
 # 4443/tcp for RTP media over TCP
 # 10000/udp for RTP media over UDP
-#
-# To configure internal auth users:
-# docker-compose exec prosody /bin/bash
-# prosodyctl --config /config/prosody.cfg.lua register username meet.jitsi badpassword  
 
 # If you have issues getting the LetsEncrypt cert on the web site/are still getting the default/wildcard self signed cert that is default then prune: docker system prune -a
 
@@ -24,15 +20,6 @@ $LetsEncryptDomain = ''
 $CONFIG_PATH = './jitsi-meet-cfg'
 $ENABLE_GUESTS=$false
 $AUTH_TYPE = "internal"
-
-[Environment]::SetEnvironmentVariable("CONFIG_PATH", "$CONFIG_PATH", "user")
-
-if($IsLinux){
-    Write-Host "Is running on linux, setting DOCKER_HOST_ADDRESS"
-    $DOCKER_HOST_ADDRESS = $(ip a | awk '/inet / { print $2 }' | sed -n 2p | cut -d "/" -f1)
-}
-
-# Create Secure Passwords in the config
 function generatePassword() {
     
     function Get-RandomCharacters($length, $characters) { 
@@ -51,6 +38,26 @@ function generatePassword() {
     
    Write-Output (Scramble-String($password) | ConvertTo-SecureString -AsPlainText -Force)
 }
+$ACCESS_CONTROL_LIST = @(
+    @{Username ='brandon';
+        Password = (ConvertTo-SecureString 'staticPassword' -AsPlainText)},
+    @{Username ='leigha';
+        Password =(ConvertTo-SecureString 'staticPassword' -AsPlainText)},
+    @{Username ='doug';
+        Password =$(generatePassword)},
+    @{Username ='mark';
+        Password =$(generatePassword)}
+)
+
+[Environment]::SetEnvironmentVariable("CONFIG_PATH", "$CONFIG_PATH", "user")
+
+if($IsLinux){
+    Write-Host "Is running on linux, setting DOCKER_HOST_ADDRESS"
+    $DOCKER_HOST_ADDRESS = $(ip a | awk '/inet / { print $2 }' | sed -n 2p | cut -d "/" -f1)
+}
+
+# Create Secure Passwords in the config
+
 
 $JICOFO_COMPONENT_SECRET=$(generatePassword)
 $JICOFO_AUTH_PASSWORD=$(generatePassword)
@@ -116,3 +123,27 @@ New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\jicofo" -ItemType Directory -Force
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\jvb" -ItemType Directory -Force
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\jigasi" -ItemType Directory -Force
 New-Item -Path "$($PSScriptRoot)\$CONFIG_PATH\jibri" -ItemType Directory -Force
+
+# Generate script to create internal Auth users
+if (-not [string]::IsNullOrEmpty($AUTH_TYPE)){
+$aclText = '$domainName = "meet.jitsi"
+
+$users = @('
+
+    foreach($a in $ACCESS_CONTROL_LIST){
+        
+        $aclText+= '@{Username="'+$a.UserName+'";Password="'+$($a.password | ConvertFrom-SecureString)+'"}
+        '
+    }
+    $aclText = $aclText.TrimEnd(',')
+$aclText+= ')'
+
+    $aclText += '
+    foreach($user in $users){
+        Write-Host "Configuring access for $($user.UserName) $domainName $(ConvertFrom-SecureString ($user.Password | ConvertTo-SecureString))"
+        docker-compose exec prosody prosodyctl --config /config/prosody.cfg.lua register $($user.UserName) $domainName $(ConvertFrom-SecureString ($user.Password | ConvertTo-SecureString)  )
+    }'
+    Write-Verbose "Generated Powershell:"
+    Write-Verbose $aclText
+    $aclText | Set-Content configureInternalAuth.ps1
+}
