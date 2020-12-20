@@ -139,8 +139,8 @@ $aclText+= ')'
 
     $aclText += '
     foreach($user in $users){
-        Write-Host "Configuring access for $($user.UserName) $domainName $(ConvertFrom-SecureString ($user.Password | ConvertTo-SecureString))"
-        docker-compose exec prosody prosodyctl --config /config/prosody.cfg.lua register $($user.UserName) $domainName $(ConvertFrom-SecureString ($user.Password | ConvertTo-SecureString)  )
+        Write-Host "Configuring access for $($user.UserName) $domainName $([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR(($user.Password | ConvertTo-SecureString))))"
+        docker-compose exec prosody prosodyctl --config /config/prosody.cfg.lua register $($user.UserName) $domainName $([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR(($user.Password | ConvertTo-SecureString))))
     }'
     Write-Verbose "Generated Powershell:"
     Write-Verbose $aclText

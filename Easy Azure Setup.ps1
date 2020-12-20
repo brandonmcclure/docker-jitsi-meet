@@ -1,3 +1,4 @@
+#Update your cloud-init before running this
 param(
 $name = "jitsiauto"
 ,$resourceGroup = "" # This is used if you want to add this to an existing resource group. if null or empty, the resource group will be set to $name.
@@ -73,3 +74,5 @@ $result
 az vm open-port --port 80 --resource-group $resourceGroup --name $name --priority 310
 az vm open-port --port 443 --resource-group $resourceGroup --name $name --priority 311
 az vm open-port --port 22 --resource-group $resourceGroup --name $name --priority 312
+az vm open-port --port 4443 --resource-group $resourceGroup --name $name --priority 313 #RTC over tcp
+az vm open-port --port 10000 --resource-group $resourceGroup --name $name --priority 314 #RTC over udp
